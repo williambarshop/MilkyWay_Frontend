@@ -3243,8 +3243,8 @@ server <- function(input, output, session) {
     write("\t\thistory_id=new_hist[u\'id\']\n",python_file,append=TRUE)
     
     #Here is the code to add in the tags!
-    write(paste0("\t\tgi.histories.create_history_tag(history_id,tag=\"pi:",gsub(" ","_",toupper(input$pifirstName)),"_",gsub(" ","_",toupper(input$pilastName)),"\")\n"),python_file,append=TRUE)
-    write(paste0("\t\tgi.histories.create_history_tag(history_id,tag=\"cc:",gsub(" ","_",toupper(input$sampleContactName)),"\")\n"),python_file,append=TRUE)
+    write(paste0("\t\tgi.histories.create_history_tag(history_id,tag=\"pi:",gsub(" ","_",toupper(input$pifirstNameDIADDA)),"_",gsub(" ","_",toupper(input$pilastNameDIADDA)),"\")\n"),python_file,append=TRUE)
+    write(paste0("\t\tgi.histories.create_history_tag(history_id,tag=\"cc:",gsub(" ","_",toupper(input$sampleContactNameDIADDA)),"\")\n"),python_file,append=TRUE)
     
     write("incoming_files={",python_file,append=TRUE)
     for(i in 1:length(inFiles[,1])){
