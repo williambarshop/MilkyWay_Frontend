@@ -1262,7 +1262,7 @@ server <- function(input, output, session) {
         e[["protein_saint_table"]]$description <- as.character(e[["protein_saint_table"]]$description)
       }
       
-      e[["exp_design_for_pViz"]] <- e[["qual_experiment_design_df"]][,c("Original File Name", "Biological Condition")]
+      e[["exp_design_for_pViz"]] <- e[["qual_experiment_design"]][,c("Original File Name", "Biological Condition")]
       colnames(e[["exp_design_for_pViz"]])[colnames(e[["exp_design_for_pViz"]]) == 'Original File Name'] <- "category"
       incProgress(23/23)
     })
