@@ -3203,7 +3203,7 @@ server <- function(input, output, session) {
     
     write("\texcept:\n\t\tos.remove(incoming_files[each_path])\n\t\tos.symlink(each_path,incoming_files[each_path])\n",python_file,append=TRUE)
     
-    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(file_type=\"fasta\",each_file,history_id)\n",python_file,append=TRUE)
+    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(each_file,history_id,file_type=\"fasta\")\n",python_file,append=TRUE)
     
     close(python_file)
     python.load(python_file_path)
@@ -3261,7 +3261,7 @@ server <- function(input, output, session) {
     
     write("\texcept:\n\t\tos.remove(incoming_files[each_path])\n\t\tos.symlink(each_path,incoming_files[each_path])\n",python_file,append=TRUE)
     
-    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(file_type=\"fasta\",each_file,history_id)\n",python_file,append=TRUE)
+    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(each_file,history_id,file_type=\"fasta\")\n",python_file,append=TRUE)
     
     close(python_file)
     python.load(python_file_path)
@@ -3318,7 +3318,7 @@ server <- function(input, output, session) {
     write("for each_path in incoming_files:\n\ttry:\n\t\tos.symlink(each_path,incoming_files[each_path])\n",python_file,append=TRUE)
     write("\texcept:\n\t\tos.remove(incoming_files[each_path])\n\t\tos.symlink(each_path,incoming_files[each_path])\n",python_file,append=TRUE)
     
-    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(file_type=\"xml\",each_file,history_id)\n",python_file,append=TRUE)
+    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(each_file,history_id,file_type=\"xml\")\n",python_file,append=TRUE)
     
     close(python_file)
     python.load(python_file_path)
@@ -3372,7 +3372,7 @@ server <- function(input, output, session) {
     write("for each_path in incoming_files:\n\ttry:\n\t\tos.symlink(each_path,incoming_files[each_path])\n",python_file,append=TRUE)
     write("\texcept:\n\t\tos.remove(incoming_files[each_path])\n\t\tos.symlink(each_path,incoming_files[each_path])\n",python_file,append=TRUE)
     
-    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(file_type=\"xml\",each_file,history_id)\n",python_file,append=TRUE)
+    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(each_file,history_id,file_type=\"xml\")\n",python_file,append=TRUE)
     
     close(python_file)
     python.load(python_file_path)
@@ -3426,7 +3426,7 @@ server <- function(input, output, session) {
     write("for each_path in incoming_files:\n\ttry:\n\t\tos.symlink(each_path,incoming_files[each_path])\n",python_file,append=TRUE)
     write("\texcept:\n\t\tos.remove(incoming_files[each_path])\n\t\tos.symlink(each_path,incoming_files[each_path])\n",python_file,append=TRUE)
     
-    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(file_type=\"txt\",each_file,history_id)\n",python_file,append=TRUE)
+    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(each_file,history_id,file_type=\"csv\")\n",python_file,append=TRUE)
     
     close(python_file)
     python.load(python_file_path)
@@ -3504,7 +3504,7 @@ server <- function(input, output, session) {
     write("\t\thistory_id=new_hist[u\'id\']\n",python_file,append=TRUE)
     write(paste0("except:\n\tif history_id==0:\n\t\thistory_id=histories[0][u\'id\']\n"),python_file,append=TRUE)
     
-    write(paste0("uploaded=gi.tools.upload_file(file_type=\"txt\",\"",design_file_path,"\",history_id)\n"),python_file,append=TRUE)
+    write(paste0("uploaded=gi.tools.upload_file(\"",design_file_path,"\",history_id,file_type=\"txt\")\n"),python_file,append=TRUE)
     
     close(python_file)
     python.load(python_file_path)
@@ -3556,7 +3556,7 @@ server <- function(input, output, session) {
     write("\t\thistory_id=new_hist[u\'id\']\n",python_file,append=TRUE)
     write(paste0("except:\n\tif history_id==0:\n\t\thistory_id=histories[0][u\'id\']\n"),python_file,append=TRUE)
     
-    write(paste0("uploaded=gi.tools.upload_file(file_type=\"txt\",\"",design_file_path,"\",history_id)\n"),python_file,append=TRUE)
+    write(paste0("uploaded=gi.tools.upload_file(\"",design_file_path,"\",history_id,file_type=\"txt\")\n"),python_file,append=TRUE)
     
     close(python_file)
     python.load(python_file_path)
@@ -3613,7 +3613,7 @@ server <- function(input, output, session) {
     write("\t\thistory_id=new_hist[u\'id\']\n",python_file,append=TRUE)
     write(paste0("except:\n\tif history_id==0:\n\t\thistory_id=histories[0][u\'id\']\n"),python_file,append=TRUE)
     
-    write(paste0("uploaded=gi.tools.upload_file(file_type=\"txt\",\"",design_file_path,"\",history_id)\n"),python_file,append=TRUE)
+    write(paste0("uploaded=gi.tools.upload_file(\"",design_file_path,"\",history_id,file_type=\"txt\")\n"),python_file,append=TRUE)
     
     close(python_file)
     python.load(python_file_path)
