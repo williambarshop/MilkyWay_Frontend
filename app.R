@@ -72,7 +72,7 @@ server <- function(input, output, session) {
           Username <- isolate(input$userName)
           Password <- isolate(input$passwd)
           if (length(Username) > 0 & length(Password) > 0) {
-            galaxy_con <- GET("http://192.168.2.102/api/authenticate/baseauth", authenticate(Username, Password))
+            galaxy_con <- GET("http://milkyway-galaxy/api/authenticate/baseauth", authenticate(Username, Password))
             if (status_code(galaxy_con) == 200) {
               USER$Logged <- TRUE
               USER$api_key <- content(galaxy_con)$api_key
@@ -108,18 +108,9 @@ server <- function(input, output, session) {
                                             tabName = "qual_analysis_viewer",
                                             icon = icon("university")))
                      ),
-                     menuItem("Default Job Submitter",
+                     menuItem("Galaxy Job Submitter",
                               tabName = "galaxy_job_submitter",
-                              icon = icon("dashboard")
-                              ),
-                     menuItem("Paired DIA+DDA Job Submitter",
-                              tabName = "galaxy_job_submitter_dia_dda",
-                              icon = icon("dashboard")
-                              ),
-                     menuItem("TMT Job Submitter",
-                              tabName = "galaxy_job_submitter_tmt",
-                              icon = icon("dashboard")
-                              )
+                              icon = icon("dashboard"))
                      
                      
         ),
@@ -343,238 +334,230 @@ server <- function(input, output, session) {
   output$mainbodypanel <- renderUI({
     if(USER$Logged == TRUE){
       tabItems(
-
         ####################################################################### Galaxy Upload tool server side code
         tabItem(tabName = "galaxy_job_submitter",
-      fluidRow(
-          box(
-          #title="Galaxy Job Design and Upload tool",
-          width=12,
-          id="galaxy_job_submitter_box_lfq",
+				tabBox(
+					title="Galaxy Job Design and Upload tool",
+					width=12,
+					id="galaxy_upload_tabbox",
+					tabPanel(#LFQ Comparison TabPanel
+						title="LFQ Intensity Comparison Analysis (DIA or DDA)",
+						width=12,
+						id="lfq_tab_panel",
+						fluidRow(
+							  box(
+							  #title="Galaxy Job Design and Upload tool",
+							  width=12,
+							  id="galaxy_job_submitter_box_lfq",
 
 
-        conditionalPanel(
-        condition="!output.fastafileReceived",
-        h2("1. Choose an Experiment Name and provide required annotations:"),
-        textInput("historyName","Experiment Name:"),
-        wellPanel(h4("Enter full PI names below:"),
-              splitLayout(        inputPanel(textInput("pifirstName","PI First Name (Full):")),#,
-                        #helpText("e.g. \"James\"")),
-                        inputPanel(textInput("pilastName","PI Last Name (Full):"))#,
-                        #helpText("e.g. \"Wohlschlegel\""))
-              )
+							conditionalPanel(
+							condition="!output.fastafileReceived",
+							h2("1. Choose an Experiment Name and provide required annotations:"),
+							textInput("historyName","Experiment Name:"),
+							wellPanel(h4("Enter full PI names below:"),
+									  splitLayout(        inputPanel(textInput("pifirstName","PI First Name (Full):")),#,
+														  #helpText("e.g. \"James\"")),
+														  inputPanel(textInput("pilastName","PI Last Name (Full):"))#,
+														  #helpText("e.g. \"Wohlschlegel\""))
+									  )
+							),
+							textInput("sampleContactName","Collaboration Contact Name:"),
+							helpText("e.g. \"Hee Jong Kim\" or \"Buck Strickland\" - This is usually the person who generated the biological material.")
+							),
+						  conditionalPanel(
+							condition = "input.historyName.length > 0 && input.pilastName.length > 0 && input.pifirstName.length > 0 && input.sampleContactName.length > 0 && !output.fastafileReceived",
+							#h3("2. Upload files:"),
+							h2("2. Upload protein FASTA database:"),
+							helpText("Target sequences only!"),
+							fileInput('fastafile','Select FASTA file',accept=c(".fasta",".FASTA"))
+							),
+							conditionalPanel(
+							  condition = "output.fastafileReceived && !output.skylinefileReceived && !input.QAcheck",
+							  h2("3. Upload empty Skyline file:"),
+							  helpText("File should be set up for the desired analysis, modifications, and acquisition parameters."),
+							  fileInput('skylinefile','Select Skyline file', accept=c(".sky")),
+							  checkboxInput('QAcheck','Identification Analysis Only (No Intensity Analysis)',value=FALSE)
+
+							),
+							conditionalPanel(
+							  condition = "(input.QAcheck || output.skylinefileReceived) && !output.diawindowfileReceived && !input.DDAcheck",
+							  h2("4. If DIA, upload DIAUmpire window definitions, otherwise check DDA box:"),
+							  helpText("Window definitions must be saved without quotes or commas, etc, in a tsv or csv file with two columns (start and end m/z values)"),
+							  fileInput('diawindowfile','Select DIA Window file', accept=c(".csv",".tsv",".txt")),
+							  checkboxInput('DDAcheck','DDA File Upload: SKIP',value=FALSE)
+							),
+
+							conditionalPanel(
+							  condition = "!output.datafilesReceived && (input.DDAcheck || output.diawindowfileReceived)",
+							  h2("5. Upload mass spec data:"),
+							  helpText("mzML files should be zlib compressed and centroided"),
+							  fileInput('files', 'Choose raw/mzML files', accept=c('.raw','.mzML','.mzml'),multiple=TRUE)
+							),
+						  conditionalPanel(condition="output.datafilesReceived",
+										   wellPanel(
+											 h2("6. Edit the table below, and click the save button below to send\nthe experimental design to Galaxy"),
+											 #h3("Save"), 
+											 actionButton("save", "Save table")
+										   )
+										),
+                                                        conditionalPanel(
+								condition=FALSE,
+								verbatimTextOutput('uploadedFASTA'),
+								verbatimTextOutput('uploadedSkyline'),
+								verbatimTextOutput('uploadedDIAwindowfile'),
+								verbatimTextOutput('uploaded')
+						        )
+
+							)#end of the box
+						),
+						fluidRow(
+						   title="rhandson_box_lfq",
+						   id="handson_box_lfq",
+						   width="12",
+						   #height="600px",
+						   box(
+								title="Experimental Design Table",
+								id="interior_handson_box_lfq",
+								width=12,
+								
+								rHandsontableOutput("hot")
+						   )
+						)
+					),#end of LFQ tabPanel
+
+					tabPanel(#DIA+DDA
+						title="LFQ Intensity Comparative Analysis (DDA-ID+DIA-Quant)",
+						width=12,
+						id="dia_dda_tab_panel",
+						fluidRow(
+							box(
+								#title="Galaxy Job Design and Upload tool",
+								width=12,
+								id="galaxy_job_submitter_box_dia_dda",
+							conditionalPanel(
+							condition="!output.fastafileReceivedDIADDA",
+							h2("1. Choose an Experiment Name and provide required annotations:"),
+							textInput("historyNameDIADDA","Experiment Name:",value=""),
+							wellPanel(h4("Enter full PI names below:"),
+									  splitLayout(        inputPanel(textInput("pifirstNameDIADDA","PI First Name (Full):")),#,
+														  #helpText("e.g. \"James\"")),
+														  inputPanel(textInput("pilastNameDIADDA","PI Last Name (Full):"))#,
+														  #helpText("e.g. \"Wohlschlegel\""))
+									  )
+							),
+							textInput("sampleContactNameDIADDA","Collaboration Contact Name:",value=""),
+							helpText("e.g. \"Hee Jong Kim\" or \"Buck Strickland\" - This is usually the person who generated the biological material.")
+							),
+						  conditionalPanel(
+							condition = "input.historyNameDIADDA.length > 0 && input.pilastNameDIADDA.length > 0 && input.pifirstNameDIADDA.length > 0 && input.sampleContactNameDIADDA.length > 0 && !output.fastafileReceivedDIADDA",
+							#h3("2. Upload files:"),
+							h2("2. Upload protein FASTA database:"),
+							helpText("Target sequences only!"),
+							fileInput('fastafileDIADDA','Select FASTA file',accept=c(".fasta",".FASTA"))
+							),
+							conditionalPanel(
+							  condition = "output.fastafileReceivedDIADDA && !output.skylinefileReceivedDIADDA",
+							  h2("3. Upload empty Skyline file:"),
+							  helpText("File should be set up for the desired analysis, modifications, and acquisition parameters."),
+							  fileInput('skylinefileDIADDA','Select Skyline file', accept=c(".sky"))
+							),
+
+							conditionalPanel(
+							  condition = "!output.datafilesReceivedDIADDA",
+							  h2("4. Upload DDA (searchable) mass spec data:"),
+							  helpText("mzML files should be zlib compressed and centroided"),
+							  fileInput('filesDIADDA', 'Choose raw/mzML files', accept=c('.raw','.mzML','.mzml'),multiple=TRUE)
+							),
+						  conditionalPanel(condition="output.datafilesReceivedDIADDA",
+										   wellPanel(
+											 h2("5. Edit the DDA file table below, and click the save button below to send\nthe experimental design to Galaxy"),
+											 actionButton("saveDIADDA", "Save DDA table")
+										   )
+										),
+							conditionalPanel(
+							  condition = "output.datafilesReceivedDIADDA",
+							  h2("6. Upload DIA (quantitative) mass spec data:"),
+							  helpText("mzML files should be zlib compressed and centroided"),
+							  fileInput('filesDIADDA_DIA', 'Choose raw/mzML files', accept=c('.raw','.mzML','.mzml'),multiple=TRUE)
+							),
+						  conditionalPanel(condition="output.datafilesReceivedDIADDA",
+										   wellPanel(
+											 h2("7. Edit the DIA file table below, and click the save button below to send\nthe experimental design to Galaxy"),
+											 actionButton("saveDIADDA_DIA", "Save DIA table")
+										   )
+										),
+
+
+                                                        conditionalPanel(
+								condition=FALSE,
+								verbatimTextOutput('uploadedFASTADIADDA'),
+								verbatimTextOutput('uploadedSkylineDIADDA'),
+								verbatimTextOutput('uploadedDIAwindowfileDIADDA'),
+								verbatimTextOutput('uploadedDIADDA'),
+								verbatimTextOutput('uploadedDIADDA_DIA')
+						        )
+
+							)#end of the box
+						),
+						fluidRow(
+						   title="DDA Files",
+						   id="handson_box_dia_dda",
+						   width="12",
+						   #height="600px",
+						   box(
+								title="DDA Experimental Design Table",
+								id="interior_handson_box_dia_dda",
+								width=12,
+								
+								rHandsontableOutput("hotDIADDA")
+							   )
+							),#endofHandsonFluidRow
+						fluidRow(
+						   title="DIA Files",
+						   id="handson_box_dia_dda_DIA",
+						   width="12",
+						   #height="600px",
+						   box(
+								title="DIA Experimental Design Table",
+								id="interior_handson_box_dia_dda_DIA",
+								width=12,
+								
+								rHandsontableOutput("hotDIADDA_DIA")
+							   )
+							)#endofHandsonFluidRow
+								
+					),#end of DIA+DDA Analysis TabPanel
+
+					tabPanel(#TMT Analysis tabPanel
+						title="TMT Analysis",
+						width=12,
+						id="tmt_tab_panel",
+						fluidRow(
+							box(
+								#title="Galaxy Job Design and Upload tool",
+								width=12,
+								id="galaxy_job_submitter_box_tmt"
+								), #below this goes another rhansdsontable
+						fluidRow(
+						   title="rhandson_box",
+						   id="handson_box_tmt",
+						   width="12",
+						   #height="600px",
+						   box(
+								title="Experimental Design Table",
+								id="interior_handson_box_tmt",
+								width=12,
+								
+								rHandsontableOutput("hot_tmt")
+							   )
+							)#endofHandsonFluidRow
+								
+						)
+					)#end of TMT Analysis
+				)#end of tab Box
         ),
-        textInput("sampleContactName","Collaboration Contact Name:"),
-        helpText("e.g. \"Hee Jong Kim\" or \"Buck Strickland\" - This is usually the person who generated the biological material.")
-        ),
-        conditionalPanel(
-        condition = "input.historyName.length > 0 && input.pilastName.length > 0 && input.pifirstName.length > 0 && input.sampleContactName.length > 0 && !output.fastafileReceived",
-        #h3("2. Upload files:"),
-        h2("2. Upload protein FASTA database:"),
-        helpText("Target sequences only!"),
-        fileInput('fastafile','Select FASTA file',accept=c(".fasta",".FASTA"))
-        ),
-        conditionalPanel(
-          condition = "output.fastafileReceived && !output.skylinefileReceived && !input.QAcheck",
-          h2("3. Upload empty Skyline file:"),
-          helpText("File should be set up for the desired analysis, modifications, and acquisition parameters."),
-          fileInput('skylinefile','Select Skyline file', accept=c(".sky")),
-          checkboxInput('QAcheck','Identification Analysis Only (No Intensity Analysis)',value=FALSE)
-
-        ),
-        conditionalPanel(
-          condition = "(input.QAcheck || output.skylinefileReceived) && !output.diawindowfileReceived && !input.DDAcheck",
-          h2("4. If DIA, upload DIAUmpire window definitions, otherwise check DDA box:"),
-          helpText("Window definitions must be saved without quotes or commas, etc, in a tsv or csv file with two columns (start and end m/z values)"),
-          fileInput('diawindowfile','Select DIA Window file', accept=c(".csv",".tsv",".txt")),
-          checkboxInput('DDAcheck','DDA File Upload: SKIP',value=FALSE)
-        ),
-
-        conditionalPanel(
-          condition = "!output.datafilesReceived && (input.DDAcheck || output.diawindowfileReceived)",
-          h2("5. Upload mass spec data:"),
-          helpText("mzML files should be zlib compressed and centroided"),
-          fileInput('files', 'Choose raw/mzML files', accept=c('.raw','.mzML','.mzml'),multiple=TRUE)
-        ),
-        conditionalPanel(condition="output.datafilesReceived",
-                 wellPanel(
-                 h2("6. Edit the table below, and click the save button below to send\nthe experimental design to Galaxy"),
-                 #h3("Save"), 
-                 actionButton("save", "Save table")
-                 )
-              ),
-                      conditionalPanel(
-          condition=FALSE,
-          verbatimTextOutput('uploadedFASTA'),
-          verbatimTextOutput('uploadedSkyline'),
-          verbatimTextOutput('uploadedDIAwindowfile'),
-          verbatimTextOutput('uploaded')
-          )
-
-        )#end of the box
-      ),
-      fluidRow(
-         title="rhandson_box_lfq",
-         id="handson_box_lfq",
-         width="12",
-         #height="600px",
-         box(
-          title="Experimental Design Table",
-          id="interior_handson_box_lfq",
-          width=12,
-          
-          rHandsontableOutput("hot")
-         )
-      )
-
-
-        ),
-    
-    #DIA+DDA UPLOAD SECTION
-    
-    tabItem(tabName = "galaxy_job_submitter_dia_dda",
-      fluidRow(
-        box(
-          #title="Galaxy Job Design and Upload tool",
-          width=12,
-          id="galaxy_job_submitter_box_dia_dda",
-        conditionalPanel(
-        condition="!output.fastafileReceivedDIADDA",
-        h2("1. Choose an Experiment Name and provide required annotations:"),
-        textInput("historyNameDIADDA","Experiment Name:",value=""),
-        wellPanel(h4("Enter full PI names below:"),
-              splitLayout(        inputPanel(textInput("pifirstNameDIADDA","PI First Name (Full):")),#,
-                        #helpText("e.g. \"James\"")),
-                        inputPanel(textInput("pilastNameDIADDA","PI Last Name (Full):"))#,
-                        #helpText("e.g. \"Wohlschlegel\""))
-              )
-        ),
-        textInput("sampleContactNameDIADDA","Collaboration Contact Name:",value=""),
-        helpText("e.g. \"Hee Jong Kim\" or \"Buck Strickland\" - This is usually the person who generated the biological material.")
-        ),
-        conditionalPanel(
-        condition = "input.historyNameDIADDA.length > 0 && input.pilastNameDIADDA.length > 0 && input.pifirstNameDIADDA.length > 0 && input.sampleContactNameDIADDA.length > 0 && !output.fastafileReceivedDIADDA",
-        #h3("2. Upload files:"),
-        h2("2. Upload protein FASTA database:"),
-        helpText("Target sequences only!"),
-        fileInput('fastafileDIADDA','Select FASTA file',accept=c(".fasta",".FASTA"))
-        ),
-        conditionalPanel(
-          condition = "output.fastafileReceivedDIADDA && !output.skylinefileReceivedDIADDA",
-          h2("3. Upload empty Skyline file:"),
-          helpText("File should be set up for the desired analysis, modifications, and acquisition parameters."),
-          fileInput('skylinefileDIADDA','Select Skyline file', accept=c(".sky"))
-        ),
-
-        conditionalPanel(
-          condition = "!output.datafilesReceivedDIADDA",
-          h2("4. Upload DDA (searchable) mass spec data:"),
-          helpText("mzML files should be zlib compressed and centroided"),
-          fileInput('filesDIADDA', 'Choose raw/mzML files', accept=c('.raw','.mzML','.mzml'),multiple=TRUE)
-        ),
-        conditionalPanel(condition="output.datafilesReceivedDIADDA",
-                 wellPanel(
-                 h2("5. Edit the DDA file table below, and click the save button below to send\nthe experimental design to Galaxy"),
-                 actionButton("saveDIADDA", "Save DDA table")
-                 )
-              ),
-        conditionalPanel(
-          condition = "output.datafilesReceivedDIADDA",
-          h2("6. Upload DIA (quantitative) mass spec data:"),
-          helpText("mzML files should be zlib compressed and centroided"),
-          fileInput('filesDIADDA_DIA', 'Choose raw/mzML files', accept=c('.raw','.mzML','.mzml'),multiple=TRUE)
-        ),
-        conditionalPanel(condition="output.datafilesReceivedDIADDA",
-                 wellPanel(
-                 h2("7. Edit the DIA file table below, and click the save button below to send\nthe experimental design to Galaxy"),
-                 actionButton("saveDIADDA_DIA", "Save DIA table")
-                 )
-              ),
-
-
-                      conditionalPanel(
-          condition=FALSE,
-          verbatimTextOutput('uploadedFASTADIADDA'),
-          verbatimTextOutput('uploadedSkylineDIADDA'),
-          verbatimTextOutput('uploadedDIAwindowfileDIADDA'),
-          verbatimTextOutput('uploadedDIADDA'),
-          verbatimTextOutput('uploadedDIADDA_DIA')
-          )
-
-        )#end of the box
-      ),
-      fluidRow(
-         title="DDA Files",
-         id="handson_box_dia_dda",
-         width="12",
-         #height="600px",
-         box(
-          title="DDA Experimental Design Table",
-          id="interior_handson_box_dia_dda",
-          width=12,
-          
-          rHandsontableOutput("hotDIADDA")
-           )
-        ),#endofHandsonFluidRow
-      fluidRow(
-         title="DIA Files",
-         id="handson_box_dia_dda_DIA",
-         width="12",
-         #height="600px",
-         box(
-          title="DIA Experimental Design Table",
-          id="interior_handson_box_dia_dda_DIA",
-          width=12,
-          
-          rHandsontableOutput("hotDIADDA_DIA")
-           )
-        )#endofHandsonFluidRow
-    ),
-    
-    
-    #TMT UPLOAD SECTION
-    
-    tabItem(tabName = "galaxy_job_submitter_tmt",
-      fluidRow(
-        box(
-          #title="Galaxy Job Design and Upload tool",
-          width=12,
-          id="galaxy_job_submitter_box_tmt"
-          ), #below this goes another rhansdsontable
-      fluidRow(
-         title="rhandson_box",
-         id="handson_box_tmt",
-         width="12",
-         #height="600px",
-         box(
-          title="Experimental Design Table",
-          id="interior_handson_box_tmt",
-          width=12,
-          
-          rHandsontableOutput("hot_tmt")
-           )
-        )#endofHandsonFluidRow
-          
-      )
-    ),
-
-
-
-
-
-        ####################################################################### Galaxy Upload tool server side code
-
-
-
-
-
-
-
-
-
-
-
-        ####################################################################### /Galaxy Upload tool server side code v.0.2.0
+        ####################################################################### /Galaxy Upload tool server side code v.0.1.5
         tabItem(tabName = "galaxy_history_browser",
                 fluidRow(
                   box(title = "Collaborator",
@@ -1106,7 +1089,7 @@ server <- function(input, output, session) {
   observe({
     if (USER$api_key != ""){
       gx_init(USER$api_key,
-              GALAXY_URL='http://192.168.2.102/',
+              GALAXY_URL='http://milkyway-galaxy/',
               HISTORY_ID = "")
       history <- gx_list_histories()
       history <- cbind(history_index = rownames(history), history)
@@ -2780,7 +2763,7 @@ server <- function(input, output, session) {
   ###### Galaxy upload global
   options(shiny.maxRequestSize=50000*1024^2)
   
-  galaxy_address<-'192.168.2.102'
+  galaxy_address<-'milkyway-galaxy'
   galaxy_API_key<-reactive({USER$api_key})
   
   fileName= c("example-file-1.raw","example-file-2-A.raw","example-file-2-B.raw",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA)
@@ -3220,7 +3203,7 @@ server <- function(input, output, session) {
     
     write("\texcept:\n\t\tos.remove(incoming_files[each_path])\n\t\tos.symlink(each_path,incoming_files[each_path])\n",python_file,append=TRUE)
     
-    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(each_file,history_id)\n",python_file,append=TRUE)
+    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(file_type=\"fasta\",each_file,history_id)\n",python_file,append=TRUE)
     
     close(python_file)
     python.load(python_file_path)
@@ -3260,8 +3243,8 @@ server <- function(input, output, session) {
     write("\t\thistory_id=new_hist[u\'id\']\n",python_file,append=TRUE)
     
     #Here is the code to add in the tags!
-    write(paste0("\t\tgi.histories.create_history_tag(history_id,tag=\"pi:",gsub(" ","_",toupper(input$pifirstNameDIADDA)),"_",gsub(" ","_",toupper(input$pilastNameDIADDA)),"\")\n"),python_file,append=TRUE)
-    write(paste0("\t\tgi.histories.create_history_tag(history_id,tag=\"cc:",gsub(" ","_",toupper(input$sampleContactNameDIADDA)),"\")\n"),python_file,append=TRUE)
+    write(paste0("\t\tgi.histories.create_history_tag(history_id,tag=\"pi:",gsub(" ","_",toupper(input$pifirstName)),"_",gsub(" ","_",toupper(input$pilastName)),"\")\n"),python_file,append=TRUE)
+    write(paste0("\t\tgi.histories.create_history_tag(history_id,tag=\"cc:",gsub(" ","_",toupper(input$sampleContactName)),"\")\n"),python_file,append=TRUE)
     
     write("incoming_files={",python_file,append=TRUE)
     for(i in 1:length(inFiles[,1])){
@@ -3278,7 +3261,7 @@ server <- function(input, output, session) {
     
     write("\texcept:\n\t\tos.remove(incoming_files[each_path])\n\t\tos.symlink(each_path,incoming_files[each_path])\n",python_file,append=TRUE)
     
-    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(each_file,history_id)\n",python_file,append=TRUE)
+    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(file_type=\"fasta\",each_file,history_id)\n",python_file,append=TRUE)
     
     close(python_file)
     python.load(python_file_path)
@@ -3335,7 +3318,7 @@ server <- function(input, output, session) {
     write("for each_path in incoming_files:\n\ttry:\n\t\tos.symlink(each_path,incoming_files[each_path])\n",python_file,append=TRUE)
     write("\texcept:\n\t\tos.remove(incoming_files[each_path])\n\t\tos.symlink(each_path,incoming_files[each_path])\n",python_file,append=TRUE)
     
-    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(each_file,history_id)\n",python_file,append=TRUE)
+    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(file_type=\"xml\",each_file,history_id)\n",python_file,append=TRUE)
     
     close(python_file)
     python.load(python_file_path)
@@ -3389,7 +3372,7 @@ server <- function(input, output, session) {
     write("for each_path in incoming_files:\n\ttry:\n\t\tos.symlink(each_path,incoming_files[each_path])\n",python_file,append=TRUE)
     write("\texcept:\n\t\tos.remove(incoming_files[each_path])\n\t\tos.symlink(each_path,incoming_files[each_path])\n",python_file,append=TRUE)
     
-    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(each_file,history_id)\n",python_file,append=TRUE)
+    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(file_type=\"xml\",each_file,history_id)\n",python_file,append=TRUE)
     
     close(python_file)
     python.load(python_file_path)
@@ -3443,7 +3426,7 @@ server <- function(input, output, session) {
     write("for each_path in incoming_files:\n\ttry:\n\t\tos.symlink(each_path,incoming_files[each_path])\n",python_file,append=TRUE)
     write("\texcept:\n\t\tos.remove(incoming_files[each_path])\n\t\tos.symlink(each_path,incoming_files[each_path])\n",python_file,append=TRUE)
     
-    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(each_file,history_id)\n",python_file,append=TRUE)
+    write("for each_file in incoming_files.values():\n\tuploaded=gi.tools.upload_file(file_type=\"txt\",each_file,history_id)\n",python_file,append=TRUE)
     
     close(python_file)
     python.load(python_file_path)
@@ -3521,7 +3504,7 @@ server <- function(input, output, session) {
     write("\t\thistory_id=new_hist[u\'id\']\n",python_file,append=TRUE)
     write(paste0("except:\n\tif history_id==0:\n\t\thistory_id=histories[0][u\'id\']\n"),python_file,append=TRUE)
     
-    write(paste0("uploaded=gi.tools.upload_file(\"",design_file_path,"\",history_id)\n"),python_file,append=TRUE)
+    write(paste0("uploaded=gi.tools.upload_file(file_type=\"txt\",\"",design_file_path,"\",history_id)\n"),python_file,append=TRUE)
     
     close(python_file)
     python.load(python_file_path)
@@ -3573,7 +3556,7 @@ server <- function(input, output, session) {
     write("\t\thistory_id=new_hist[u\'id\']\n",python_file,append=TRUE)
     write(paste0("except:\n\tif history_id==0:\n\t\thistory_id=histories[0][u\'id\']\n"),python_file,append=TRUE)
     
-    write(paste0("uploaded=gi.tools.upload_file(\"",design_file_path,"\",history_id)\n"),python_file,append=TRUE)
+    write(paste0("uploaded=gi.tools.upload_file(file_type=\"txt\",\"",design_file_path,"\",history_id)\n"),python_file,append=TRUE)
     
     close(python_file)
     python.load(python_file_path)
@@ -3630,7 +3613,7 @@ server <- function(input, output, session) {
     write("\t\thistory_id=new_hist[u\'id\']\n",python_file,append=TRUE)
     write(paste0("except:\n\tif history_id==0:\n\t\thistory_id=histories[0][u\'id\']\n"),python_file,append=TRUE)
     
-    write(paste0("uploaded=gi.tools.upload_file(\"",design_file_path,"\",history_id)\n"),python_file,append=TRUE)
+    write(paste0("uploaded=gi.tools.upload_file(file_type=\"txt\",\"",design_file_path,"\",history_id)\n"),python_file,append=TRUE)
     
     close(python_file)
     python.load(python_file_path)
