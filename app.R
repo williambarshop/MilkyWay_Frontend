@@ -186,15 +186,18 @@ server <- function(input, output, session) {
             column(12,
                    align="center",
                    helpText("Analysis Metrics Parameters")),
-            numericInput("unnorm_peptide_dist_violin_plot_mprophet_qvalue", "mProphet q Value Cutoff:",
+            numericInput("protein_curve_percolator_qvalue", "Percolator q-value Cutoff\nfor Protein Curves:",
                          min = 0,
                          max = 1,
                          value = 0.01,
                          step= 0.01,
                          width = '800px'),
-            column(12,
-                   align="center",
-                   helpText("For Peptide Level Violin Plot"))
+            numericInput("unnorm_peptide_dist_violin_plot_mprophet_qvalue", "mProphet q-value Cutoff\nfor Peptide Violinplot:",
+                         min = 0,
+                         max = 1,
+                         value = 0.01,
+                         step= 0.01,
+                         width = '800px')
           ),
           conditionalPanel(
             condition = "input.analyzer_tabset == 'Protein'",
@@ -639,17 +642,46 @@ server <- function(input, output, session) {
                              tags$hr(),
                              "Workflow Parameters"
                     ),
+                             box(title = "mProphet Target/Decoy Score Histogram",
+                                 width = 6,
+                                 status = "warning",
+                                 plotOutput('mprophet_histogram',
+                                            width = "100%")),
+                             box(title = "Experiment-Wide Protein Identification Count Curve",
+                                 width = 6,
+                                 status = "warning",
+                                 plotOutput("fido_roc_curve_lfq")),
+                             box(title = "PSM Identification Count per Run",
+                                 width = 6,
+                                 status = "warning",
+                                 plotOutput("psm_roc_curve_lfq",
+                                            height = "600px")),
+                             box(title = "Protein Identification Count per Run",
+                                 width = 6,
+                                 status = "warning",
+                                 plotOutput("protein_roc_curve_lfq",
+                                            height = "600px")),
+                             box(title = "Intensity Violin Plot per Run",
+                                 width = 12,
+                                 status = "warning",
+                                 tabBox(
+                                   title = "Violin Plots",
+                                   id = "violin_tabset1",
+                                   width = 12,
+                                   tabPanel("Protein Level Distributions", plotOutput("protein_intensity_violin_plot_lfq",height = "600px")),
+                                   tabPanel("Unnormalized Peptide Level Distributions", plotOutput("unnorm_peptide_dist_violin_plot_lfq"),height="600px")
+                                 )),
                     tabPanel("Analysis Metrics",
-                             box(title = "FIDO ROC Curve",
+                             box(title = "Analysis-Wide Protein Identification Curve",
                                  width = 4,
                                  status = "warning",
                                  plotOutput("fido_roc_curve_qual")),
-                             box(title = "PSM ROC Curve per Run",
+                             box(title = "PSM Identifications per Run",
                                  width = 4,
                                  status = "warning",
                                  plotOutput("psm_roc_curve_qual",
                                             height = "600px")),
-                             box(title = "Protein ROC Curve per Run",
+                             box(title = "Protein Identifications per Run",
                                  width = 4,
                                  status = "warning",
                                  plotOutput("protein_roc_curve_qual",
@@ -822,21 +854,21 @@ server <- function(input, output, session) {
                              "Workflow Parameters"
                     ),
                     tabPanel("Analysis Metrics",
-                             box(title = "mProphet Target vs Decoy Histogram",
+                             box(title = "mProphet Target/Decoy Score Histogram",
                                  width = 6,
                                  status = "warning",
                                  plotOutput('mprophet_histogram', 
                                             width = "100%")),
-                             box(title = "FIDO ROC Curve",
+                             box(title = "Experiment-Wide Protein Identification Count Curve",
                                  width = 6,
                                  status = "warning",
                                  plotOutput("fido_roc_curve_lfq")),
-                             box(title = "PSM ROC Curve per Run",
+                             box(title = "PSM Identification Count per Run",
                                  width = 6,
                                  status = "warning",
                                  plotOutput("psm_roc_curve_lfq", 
                                             height = "600px")),
-                             box(title = "Protein ROC Curve per Run",
+                             box(title = "Protein Identification Count per Run",
                                  width = 6,
                                  status = "warning",
                                  plotOutput("protein_roc_curve_lfq", 
@@ -1471,9 +1503,9 @@ server <- function(input, output, session) {
     ggplot(data=mprophet_hist_df(), aes(x=annotation_Score, fill=TD)) +
       geom_histogram(binwidth=.3, position="dodge")
   })
-  ### FIDO ROC curve
+  ### FIDO ROC curve             ############### ~~~~~~~~~~~~~~~~~ MAKE THIS WORK BASED ON A SLIDER FOR FILTERING
   fido_roc_process <- reactive({
-    subset_fido <- fido_roc()[fido_roc()$`q-value` <= 0.05,]
+    subset_fido <- fido_roc()[fido_roc()$`q-value` <= input$protein_curve_percolator_qvalue,]
   })
   # For LFQ
   output$fido_roc_curve_lfq <- renderPlot({
@@ -1494,7 +1526,7 @@ server <- function(input, output, session) {
   ### PSM ROC curve
   psm_roc_curve_process <- reactive({
     # http://stackoverflow.com/questions/18379933/plotting-cumulative-counts-in-ggplot2
-    subset_psm <- psm_df()[psm_df()$`percolator q-value` <= 0.05, c("file", "percolator q-value")]
+    subset_psm <- psm_df()[psm_df()$`percolator q-value` <= 0.10, c("file", "percolator q-value")]
     subset_psm <- ddply(subset_psm, .(file), transform, len=length(`percolator q-value`))
   })
   # For LFQ
@@ -1517,9 +1549,9 @@ server <- function(input, output, session) {
   
   ### Protein ROC curve
   protein_roc_curve_process <- reactive({
-    splited_psm_protien_df <- psm_df()[psm_df()$`percolator q-value` <= 0.05, c("file","protein id","protein q-values")]
+    splited_psm_protien_df <- psm_df()[psm_df()$`percolator q-value` <= input$protein_curve_percolator_qvalue, c("file","protein id","protein q-values")]
     splited_psm_protien_df <- cSplit(splited_psm_protien_df, c("protein id","protein q-values"), ",", "long")
-    splited_psm_protien_df <- splited_psm_protien_df[splited_psm_protien_df$`protein q-values` <= 0.05,]
+    splited_psm_protien_df <- splited_psm_protien_df[splited_psm_protien_df$`protein q-values` <= 0.10,]
     splited_psm_protien_df <- splited_psm_protien_df[order(splited_psm_protien_df$file, splited_psm_protien_df$`protein id`, splited_psm_protien_df$`protein q-values`), ]
     splited_psm_protien_df <- splited_psm_protien_df[!duplicated(splited_psm_protien_df[,c("file", "protein id")]),]
     splited_psm_protien_df <- ddply(splited_psm_protien_df, .(file), transform, len=length(`protein q-values`))
