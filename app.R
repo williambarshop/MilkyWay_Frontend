@@ -1,5 +1,5 @@
 # MilkyWay
-# version: 0.3.9b
+# version: 0.4.1b
 # Author: Hee Jong Kim, William Barshop
 
 #library(org.Hs.eg.db)
@@ -666,7 +666,7 @@ server <- function(input, output, session) {
                              "Analysis Metrics for Quality Control"
                     ),
                     tabPanel("Protein",
-                             box(title = "Protein Table with SAINTexpress",
+                             box(title = "Protein Table with SAINT Enrichment",
                                  solidHeader = TRUE,
                                  width = 12,
                                  status = "info",
@@ -867,7 +867,7 @@ server <- function(input, output, session) {
                              #plotlyOutput("plotly_test"),
                              #plotlyOutput("quant_type_ratio_plot"),
                              plotlyOutput("quantratio_barplot", height = "130px"),
-                             box(title = "Protein Table with SAINTexpress",
+                             box(title = "Protein Table with SAINT Enrichment",
                                  solidHeader = TRUE,
                                  width = 12,
                                  status = "info",
@@ -1782,7 +1782,8 @@ server <- function(input, output, session) {
                  scrollX = TRUE,
                  lengthMenu = list(c(10, 15, 20, 25, -1), c('10', '15', '20', '25', 'All')),
                  dom = 'lBrtip',
-                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print')) 
+                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                 columnDefs = list(list(width = '200px', targets = 1))
   )
   
   # For Qual
@@ -1795,7 +1796,8 @@ server <- function(input, output, session) {
                  scrollX = TRUE,
                  lengthMenu = list(c(10, 15, 20, 25, -1), c('10', '15', '20', '25', 'All')),
                  dom = 'lBrtip',
-                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print')) 
+                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                 columnDefs = list(list(width = '200px', targets = 1))
   )
   
   ### SpC table
@@ -1813,7 +1815,8 @@ server <- function(input, output, session) {
                  scrollX = TRUE,
                  lengthMenu = list(c(10, 15, 20, 25, -1), c('10', '15', '20', '25', 'All')),
                  dom = 'lBrtip',
-                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print')) 
+                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                 columnDefs = list(list(width = '200px', targets = 1)) 
   )
   # For Qual
   output$spc_table_qual <- renderDataTable({
@@ -1829,7 +1832,7 @@ server <- function(input, output, session) {
                  scrollX = TRUE,
                  lengthMenu = list(c(10, 15, 20, 25, -1), c('10', '15', '20', '25', 'All')),
                  dom = 'lBrtip',
-                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print')) 
+                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))
   )
   
   ### NSAF table
@@ -1847,7 +1850,8 @@ server <- function(input, output, session) {
                  scrollX = TRUE,
                  lengthMenu = list(c(10, 15, 20, 25, -1), c('10', '15', '20', '25', 'All')),
                  dom = 'lBrtip',
-                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print')) 
+                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                 columnDefs = list(list(width = '200px', targets = 1)) 
   )
   # For Qual
   output$nsaf_table_qual <- renderDataTable({
@@ -1863,7 +1867,8 @@ server <- function(input, output, session) {
                  scrollX = TRUE,
                  lengthMenu = list(c(10, 15, 20, 25, -1), c('10', '15', '20', '25', 'All')),
                  dom = 'lBrtip',
-                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print')) 
+                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                 columnDefs = list(list(width = '200px', targets = 1))
   )
   
   ### sequence viewer
