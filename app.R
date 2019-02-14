@@ -1815,7 +1815,7 @@ server <- function(input, output, session) {
                  lengthMenu = list(c(10, 15, 20, 25, -1), c('10', '15', '20', '25', 'All')),
                  dom = 'lBrtip',
                  buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                 columnDefs = list(list(width = '200px', targets = 1))
+                 columnDefs = list(list(width = '200px', targets = 1)))
   )
   
   # For Qual
@@ -1829,7 +1829,7 @@ server <- function(input, output, session) {
                  lengthMenu = list(c(10, 15, 20, 25, -1), c('10', '15', '20', '25', 'All')),
                  dom = 'lBrtip',
                  buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                 columnDefs = list(list(width = '200px', targets = 1))
+                 columnDefs = list(list(width = '200px', targets = 1)))
   )
   
   ### SpC table
@@ -1848,7 +1848,7 @@ server <- function(input, output, session) {
                  lengthMenu = list(c(10, 15, 20, 25, -1), c('10', '15', '20', '25', 'All')),
                  dom = 'lBrtip',
                  buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                 columnDefs = list(list(width = '200px', targets = 1)) 
+                 columnDefs = list(list(width = '200px', targets = 1)))
   )
   # For Qual
   output$spc_table_qual <- renderDataTable({
@@ -1883,7 +1883,7 @@ server <- function(input, output, session) {
                  lengthMenu = list(c(10, 15, 20, 25, -1), c('10', '15', '20', '25', 'All')),
                  dom = 'lBrtip',
                  buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                 columnDefs = list(list(width = '200px', targets = 1)) 
+                 columnDefs = list(list(width = '200px', targets = 1)))
   )
   # For Qual
   output$nsaf_table_qual <- renderDataTable({
@@ -1900,7 +1900,7 @@ server <- function(input, output, session) {
                  lengthMenu = list(c(10, 15, 20, 25, -1), c('10', '15', '20', '25', 'All')),
                  dom = 'lBrtip',
                  buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                 columnDefs = list(list(width = '200px', targets = 1))
+                 columnDefs = list(list(width = '200px', targets = 1)))
   )
   
   ### sequence viewer
